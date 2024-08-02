@@ -1,0 +1,17 @@
+{
+  "name": "employee-tracker",
+  "version": "1.0.0",
+  "description": "## Your Task",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC", 
+  "dependencies": {
+    "pg": "8.11.3",
+    "inquirer":"8.2.4",
+    "asciiart-logo": "^0.2.6"
+  }
+}
