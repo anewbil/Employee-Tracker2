@@ -88,30 +88,138 @@ function viewAllEmployees(){
     })
 }
 
-function addDepartment(){
+function addDepartment() {
     inquirer.prompt([
         {
             type: "input",
-            name:"department",
-            message:" What department are you adding?"
-        }
-    ])
-    .then ((response)=>{
-        let newDepartment= response.department;
+            name: "department",
+            message: "What department are you adding?",
+        },
+    ]).then((response) => {
+        const newDepartmentName = response.department;
 
-        pool.query("INSERT INTO department VALUES ($1)",[newDepartment],function(err,res){
-            err? console.error(err): viewAllDepartments();
-        })
-    })
+        pool.query("INSERT INTO department (department_name) VALUES ($1)", [newDepartmentName], (err, res) => {
+            if (err) {
+                console.error("Error inserting department:", err);
+            } else {
+                console.log("Department added successfully.");
+                viewAllDepartments(); 
+            }
+        });
+    }).catch((err) => console.error(err));
 }
 
 function addRole(){
+    pool.query("SELECT * FROM department", function(err,res){
+        if (err) {
+            console.log(err)
+            askQuestions()
+        }
+        let departmentChoices=res.rows.map((dept)=>({
+            value:dept.id,
+            name:dept.department_name,
+        }))
+        inquirer.prompt([
+            {
+                type:"list",
+                name:"departmentName",
+                message:"what department does this role belong to?",
+                choices:departmentChoices
+            },
+            {
+                type:"input",
+                name:"roleTitle",
+                message:"what role are you adding?"
+            },
+            {
+                type:"input",
+                name:"salary",
+                message:"what's the salary for this role"
+            },
 
+        ]) .then((response)=>{
+            let departmentChoice=response.departmentName;
+            let roleTitle=response.roleTitle;
+            let salary= response.salary;
+            pool.query("INSERT INTO roles (title,salary,department_id) values ($1,$2,$3)",[roleTitle, salary, departmentChoice],function(err,res){
+                if(err){
+                    console.log("it broke",err)
+                } else{
+                    console.log("it not broke")
+                    viewAllRoles()
+                }
+            })
+        })
+
+    })
 }
 
 function addEmployee(){
+pool.query("SELECT * FROM roles ",function(err,res){
+    if(err){
+        console.log(err)
+        askQuestions()
+    } 
+    let roleList=res.rows.map((role)=>({
+        value:role.id,
+        name:role.title 
+    }))
+pool.query("SELECT * FROM employee", function(err,res){
+    if (err){
+        console.log(err)
+        askQuestions()
+    }
+    let managerList=res.rows.map((manager)=>({
+        value:manager.id,
+        name:`${manager.first_name} ${manager.last_name}`
+    }))
+    managerList.push({value:null,name:"no manager"})
 
+    inquirer.prompt([
+        {
+            type:"input",
+            name:"firstName",
+            message:"enter first name",
+        },
+        {
+            type:"input",
+            name:"lastName",
+            message:"enter last name"
+        },
+        {
+            type:"list",
+            name:"role",
+            message:"what role does this employee belong to",
+            choices:roleList
+        },
+        {
+            type:"list",
+            name:"manager",
+            message:"select the employees manager or select no manager",
+            choices:managerList
+        }
+    ])
+    .then((response)=>{
+        let empFirstName=response.firstName;
+        let empLastName=response.lastName;
+        let roleChoice=response.role;
+        let managerChoice=response.manager
+
+        pool.query("INSERT INTO employee (first_name, last_name, roles_id, manager_id) VALUES ($1,$2,$3,$4)",[empFirstName,empLastName,roleChoice,managerChoice],
+    function(err,res){
+        if(err){
+            console.log("it broke",err)
+            askQuestions()
+        } else{
+            console.log("it not broke")
+            viewAllEmployees()
+        }
+    })
+    })
+})
+})
 }
+
 
 function updateEmployeeRole(){
 
