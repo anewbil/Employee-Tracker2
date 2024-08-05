@@ -222,7 +222,53 @@ pool.query("SELECT * FROM employee", function(err,res){
 
 
 function updateEmployeeRole(){
+pool.query("SELECT * FROM roles ",function(err,res){
+    if(err){
+        console.log(err)
+        askQuestions()
+    }
+    let rolesToChange=res.rows.map((role)=>({
+        value:role.id,
+        name:role.title,
+    }))
+pool.query("SELECT * FROM employee", function(err,res){
+    if(err){
+        console.log(err)
+        askQuestions()
+    }
+    let employeeToChange=res.rows.map((employee)=>({
+        value:employee.id,
+        name:`${employee.first_name} ${employee.last_name}`
+    }))
+    inquirer.prompt([
+        {
+            type:"list",
+            name:"employeeChoice",
+            message:"select an employee to change roles",
+            choices:employeeToChange
+        },
+    {
+        type:"list",
+        name:"roleChoice",
+        message:"what role are you switching to",
+        choices:rolesToChange
+    }
+    ]). then((response)=>{
+        let employee=response.employeeChoice;
+        let role=response.roleChoice;
 
+        pool.query("UPDATE employee SET roles_id =$1 WHERE id=$2",[role,employee],function(err,res){
+            if(err){
+                console.log(err)
+                askQuestions()
+            } else{
+                viewAllEmployees()
+            }
+        })
+    })
+})
+    
+})
 }
 
 function quit(){
